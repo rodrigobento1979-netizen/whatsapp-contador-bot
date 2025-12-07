@@ -2,59 +2,46 @@ export default async function handler(req, res) {
   console.log("Webhook acionado!");
 
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+    return res.status(405).json({ error: "Método não permitido" });
   }
-
-  console.log("Corpo recebido:", req.body);
 
   const data = req.body;
+  console.log("Corpo recebido:", data);
 
-  const message = data?.body || data?.message || "";
-  const from = data?.from || "";
+  const message = data.body || "";      // <-- UltraMsg usa "body"
+  const from = data.from || "";         // <-- UltraMsg usa "from"
+
   console.log("Mensagem recebida:", message, "de:", from);
 
-  if (!from) {
-    console.log("Erro: campo FROM não encontrado.");
-    return res.json({ success: false, error: "Missing 'from'" });
-  }
-
-  // RESPOSTA PADRÃO
   let reply = "Olá! Recebemos sua mensagem.";
 
   if (message.toLowerCase().includes("faturamento")) {
-    reply = "Sua solicitação de faturamento foi registrada!";
+    reply = "Solicitação registrada: Faturamento dos últimos 12 meses.";
   }
 
   if (message.toLowerCase().includes("boleto")) {
-    reply = "Vamos gerar a segunda via do seu boleto!";
+    reply = "Ok! Vamos gerar a segunda via do boleto.";
   }
 
   console.log("Resposta que será enviada:", reply);
 
   try {
-    const ultraURL = `https://api.ultramsg.com/${process.env.INSTANCE_ID}/messages/chat`;
-
-    console.log("Enviando para UltraMsg:", ultraURL);
-
-    const ultra = await fetch(ultraURL, {
+    const url = `https://api.ultramsg.com/${process.env.INSTANCE_ID}/messages/chat`;
+    const response = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        token: process.env.ULTRAMSG_TOKEN,
+        token: process.env.TOKEN,
         to: from,
-        body: reply,
+        body: reply
       }),
     });
 
-    const result = await ultra.json();
+    const result = await response.json();
     console.log("Resposta UltraMsg:", result);
-
-    return res.json({ success: true, sent: result });
-
-  } catch (err) {
-    console.error("ERRO AO ENVIAR PARA ULTRAMSG:", err);
-    return res.status(500).json({ success: false, error: err.message });
+  } catch (error) {
+    console.error("Erro ao enviar mensagem:", error);
   }
+
+  return res.status(200).json({ success: true });
 }
