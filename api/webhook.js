@@ -1,9 +1,6 @@
-// /api/webhook.js
-
 export default async function handler(req, res) {
   console.log("Webhook acionado!");
 
-  // WHAPI usa POST para enviar mensagens e eventos
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método não permitido" });
   }
@@ -11,32 +8,33 @@ export default async function handler(req, res) {
   const body = req.body;
   console.log("Corpo recebido:", body);
 
-  // Estrutura WHAPI → body.messages.post.body.text
-  const messageEvent = body?.messages?.post?.[0];
+  // WHAPI envia mensagens assim:
+  // { messages: [ { text: { body: "msg" }, from: "5531..." } ] }
 
-  if (!messageEvent) {
+  const msgObj = body?.messages?.[0];
+
+  if (!msgObj) {
     console.log("Nenhuma mensagem válida encontrada.");
     return res.status(200).json({ message: "OK" });
   }
 
-  const msgBody = messageEvent?.body?.text || "";
-  const from = messageEvent?.from || "";
-  
+  const msgBody = msgObj?.text?.body || "";
+  const from = msgObj?.from || "";
+
   console.log(`Mensagem recebida: "${msgBody}" de: ${from}`);
 
-  // ---------- Lógica das respostas ----------
+  // ---- Lógica da resposta ----
   let reply = "Olá! Recebemos sua mensagem.";
 
   if (msgBody.toLowerCase().includes("fatura")) {
-    reply = "Sua solicitação foi registrada. Enviarei o faturamento dos últimos 12 meses em breve.";
+    reply = "Sua solicitação foi registrada. Em breve enviarei o faturamento dos últimos 12 meses.";
   }
 
   if (msgBody.toLowerCase().includes("boleto")) {
-    reply = "Ok! Gerando a segunda via do boleto.";
+    reply = "Ok! Vou gerar a segunda via do boleto.";
   }
 
-  // ------------- ENVIAR RESPOSTA VIA WHAPI ----------------
-  const channel = "CATWMN-MCBTH";
+  // ---- Enviar resposta via WHAPI ----
   const token = "TwxJ51jkF1ZF3A57Tbss0RPbCBJhADxj";
 
   try {
@@ -52,11 +50,11 @@ export default async function handler(req, res) {
       })
     });
 
-    const wres = await whapiResponse.json();
-    console.log("Resposta WHAPI:", wres);
+    const responseJson = await whapiResponse.json();
+    console.log("Resposta WHAPI:", responseJson);
 
   } catch (error) {
-    console.error("Erro ao enviar mensagem WHAPI:", error);
+    console.error("Erro ao enviar resposta WHAPI:", error);
   }
 
   return res.status(200).json({ success: true });
