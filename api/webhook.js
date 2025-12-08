@@ -1,46 +1,62 @@
+// /api/webhook.js
+
 export default async function handler(req, res) {
   console.log("Webhook acionado!");
 
+  // WHAPI usa POST para enviar mensagens e eventos
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método não permitido" });
   }
 
-  const data = req.body;
-  console.log("Corpo recebido:", data);
+  const body = req.body;
+  console.log("Corpo recebido:", body);
 
-  const message = data.body || "";      // <-- UltraMsg usa "body"
-  const from = data.from || "";         // <-- UltraMsg usa "from"
+  // Estrutura WHAPI → body.messages.post.body.text
+  const messageEvent = body?.messages?.post?.[0];
 
-  console.log("Mensagem recebida:", message, "de:", from);
+  if (!messageEvent) {
+    console.log("Nenhuma mensagem válida encontrada.");
+    return res.status(200).json({ message: "OK" });
+  }
 
+  const msgBody = messageEvent?.body?.text || "";
+  const from = messageEvent?.from || "";
+  
+  console.log(`Mensagem recebida: "${msgBody}" de: ${from}`);
+
+  // ---------- Lógica das respostas ----------
   let reply = "Olá! Recebemos sua mensagem.";
 
-  if (message.toLowerCase().includes("faturamento")) {
-    reply = "Solicitação registrada: Faturamento dos últimos 12 meses.";
+  if (msgBody.toLowerCase().includes("fatura")) {
+    reply = "Sua solicitação foi registrada. Enviarei o faturamento dos últimos 12 meses em breve.";
   }
 
-  if (message.toLowerCase().includes("boleto")) {
-    reply = "Ok! Vamos gerar a segunda via do boleto.";
+  if (msgBody.toLowerCase().includes("boleto")) {
+    reply = "Ok! Gerando a segunda via do boleto.";
   }
 
-  console.log("Resposta que será enviada:", reply);
+  // ------------- ENVIAR RESPOSTA VIA WHAPI ----------------
+  const channel = "CATWMN-MCBTH";
+  const token = "TwxJ51jkF1ZF3A57Tbss0RPbCBJhADxj";
 
   try {
-    const url = `https://api.ultramsg.com/${process.env.INSTANCE_ID}/messages/chat`;
-    const response = await fetch(url, {
+    const whapiResponse = await fetch(`https://gate.whapi.cloud/messages/text`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
       body: JSON.stringify({
-        token: process.env.TOKEN,
         to: from,
         body: reply
-      }),
+      })
     });
 
-    const result = await response.json();
-    console.log("Resposta UltraMsg:", result);
+    const wres = await whapiResponse.json();
+    console.log("Resposta WHAPI:", wres);
+
   } catch (error) {
-    console.error("Erro ao enviar mensagem:", error);
+    console.error("Erro ao enviar mensagem WHAPI:", error);
   }
 
   return res.status(200).json({ success: true });
