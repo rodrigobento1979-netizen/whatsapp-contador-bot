@@ -1,291 +1,234 @@
-// ==========================
-//  FLUXO EMBUTIDO EM JSON
-// ==========================
+import { NextResponse } from "next/server";
+import { getSession, saveSession } from "./db";
 
-const flow = {
-  welcome: {
-    message:
-"Olá! 👋 Bem-vindo ao Atendimento Contábil.\nEscolha uma opção:\n\n1️⃣ Solicitações\n2️⃣ Administração\n\nDigite o número da opção:",
-    options: { "1": "solicitacoes", "2": "administracao" }
-  },
-
-  // ===============================
-  //        SOLICITAÇÕES
-  // ===============================
-  solicitacoes: {
-    message:
-"Selecione o setor desejado:\n\n👤 1 — Depto. Pessoal\n📄 2 — Depto. Fiscal\n📚 3 — Depto. Contábil\n\n↩️ 0 — Voltar ao menu anterior\n",
-    options: {
-      "1": "dp_menu",
-      "2": "fiscal_menu",
-      "3": "contabil_menu",
-      "0": "welcome"
-    }
-  },
-
-  // ===============================
-  //     DEPARTAMENTO PESSOAL
-  // ===============================
-  dp_menu: {
-    message:
-"👤 Departamento Pessoal — Escolha uma opção:\n\n1️⃣ Holerite\n2️⃣ Férias\n3️⃣ Rescisões\n4️⃣ Afastamentos\n5️⃣ Recalculo de Guias\n6️⃣ Enviar Documentos\n7️⃣ Solicitar Documentos\n9️⃣ Falar com Especialista\n\n↩️ 0 — Voltar ao menu anterior\n🏠 00 — Menu principal",
-    options: {
-      "1": "dp_holerite",
-      "2": "dp_ferias",
-      "3": "dp_rescisoes",
-      "4": "dp_afastamentos",
-      "5": "dp_recalculo_guias",
-      "6": "dp_enviar_docs",
-      "7": "dp_solicitar_docs",
-      "9": "especialista",
-      "0": "solicitacoes",
-      "00": "welcome"
-    }
-  },
-
-  // ==== AÇÕES DP ====
-  dp_holerite: {
-    response_template: "📄 Solicitação registrada!\nHolerite solicitado.",
-    finish: true
-  },
-  dp_ferias: {
-    response_template: "🌴 Solicitação registrada!\nPedido de férias aberto.",
-    finish: true
-  },
-  dp_rescisoes: {
-    response_template: "📑 Solicitação registrada!\nProcesso de rescisão iniciado.",
-    finish: true
-  },
-  dp_afastamentos: {
-    response_template: "🏥 Solicitação registrada!\nProcesso de afastamento iniciado.",
-    finish: true
-  },
-  dp_recalculo_guias: {
-    response_template: "🧾 Solicitação registrada!\nRecalculo de guias pedido.",
-    finish: true
-  },
-  dp_enviar_docs: {
-    message: "📎 Envie os documentos em PDF ou foto.",
-    finish: true
-  },
-  dp_solicitar_docs: {
-    response_template: "📄 Solicitação enviada ao Depto. Pessoal.",
-    finish: true
-  },
-
-  // ===============================
-  //        DEPARTAMENTO FISCAL
-  // ===============================
-  fiscal_menu: {
-    message:
-"📄 Departamento Fiscal — Escolha uma opção:\n\n1️⃣ Recalculo de Guias\n2️⃣ Falar sobre Impostos\n3️⃣ Enviar Documentos\n4️⃣ Relação de Faturamento\n5️⃣ Dúvidas na Emissão de Notas\n9️⃣ Falar com Especialista\n\n↩️ 0 — Voltar ao menu anterior\n🏠 00 — Menu principal",
-    options: {
-      "1": "fiscal_recalculo",
-      "2": "fiscal_impostos",
-      "3": "fiscal_docs",
-      "4": "fiscal_faturamento",
-      "5": "fiscal_notas",
-      "9": "especialista",
-      "0": "solicitacoes",
-      "00": "welcome"
-    }
-  },
-
-  // ==== AÇÕES FISCAL ====
-  fiscal_recalculo: {
-    response_template: "📄 Recalculo de guias solicitado!",
-    finish: true
-  },
-  fiscal_impostos: {
-    response_template: "🧮 Um especialista em impostos irá te atender.",
-    finish: true
-  },
-  fiscal_docs: {
-    message: "📎 Envie os documentos fiscais.",
-    finish: true
-  },
-  fiscal_faturamento: {
-    response_template: "📊 Relação de faturamento solicitada!",
-    finish: true
-  },
-  fiscal_notas: {
-    message: "✍️ Explique sua dúvida sobre emissão de notas:",
-    finish: false
-  },
-
-  // ===============================
-  //        CONTÁBIL
-  // ===============================
-  contabil_menu: {
-    message:
-"📚 Departamento Contábil — Escolha uma opção:\n\n1️⃣ Enviar Documentos\n2️⃣ Solicitar Documentações\n9️⃣ Falar com Especialista\n\n↩️ 0 — Voltar ao menu anterior\n🏠 00 — Menu principal",
-    options: {
-      "1": "contabil_enviar_docs",
-      "2": "contabil_solicitar_docs",
-      "9": "especialista",
-      "0": "solicitacoes",
-      "00": "welcome"
-    }
-  },
-
-  contabil_enviar_docs: {
-    message: "📎 Envie os documentos contábeis.",
-    finish: true
-  },
-  contabil_solicitar_docs: {
-    response_template: "📄 Solicitação enviada ao Contábil.",
-    finish: true
-  },
-
-  // ===============================
-  //        ADMINISTRAÇÃO
-  // ===============================
-  administracao: {
-    message:
-"🏢 Administração — Escolha uma opção:\n\n1️⃣ Solicitar Orçamentos\n2️⃣ Enviar Documentos\n3️⃣ Outras Solicitações\n\n↩️ 0 — Voltar ao menu anterior\n🏠 00 — Menu principal",
-    options: {
-      "1": "adm_orcamentos",
-      "2": "adm_enviar_docs",
-      "3": "adm_outras",
-      "0": "welcome",
-      "00": "welcome"
-    }
-  },
-
-  adm_orcamentos: {
-    response_template: "📬 Sua solicitação de orçamento foi registrada!",
-    finish: true
-  },
-  adm_enviar_docs: {
-    message: "📎 Envie os documentos administrativos.",
-    finish: true
-  },
-  adm_outras: {
-    message: "✏️ Descreva sua solicitação:",
-    finish: false
-  },
-
-  especialista: {
-    response_template: "👨‍💼 Encaminhando para um especialista...",
-    finish: true
-  }
+export const config = {
+  runtime: "edge",
 };
 
+export default async function handler(req) {
+  try {
+    const body = await req.json();
+    console.log("[Webhook acionado!]");
+    console.log("Corpo recebido:", JSON.stringify(body, null, 2));
 
-// ===============================
-//    STATE OF USERS (MEMORY)
-// ===============================
-
-const userState = {};
-
-
-// ===============================
-//     MAIN WEBHOOK HANDLER
-// ===============================
-
-export default async function handler(req, res) {
-  console.log("Webhook acionado!");
-
-  if (req.method !== "POST") return res.status(405).json({ error: "Método não permitido" });
-
-  const body = req.body;
-  console.log("Corpo recebido:", body);
-
-  const msgObj = body?.messages?.[0];
-  if (!msgObj) return res.status(200).json({ msg: "sem mensagem" });
-
-  const msg = (msgObj?.text?.body || "").toLowerCase().trim();
-  const from = msgObj?.from;
-
-  // Inicializa usuário
-  if (!userState[from]) userState[from] = { step: "welcome" };
-
-  // Voltar ao menu principal
-  if (msg === "00") {
-    userState[from].step = "welcome";
-    await sendReply(from, flow.welcome.message);
-    return res.json({ ok: true });
-  }
-
-  // Voltar ao menu anterior
-  if (msg === "0") {
-    const back = getBackStep(userState[from].step);
-    userState[from].step = back;
-    await sendReply(from, flow[back].message);
-    return res.json({ ok: true });
-  }
-
-  const step = userState[from].step;
-  const node = flow[step];
-
-  // PROCESSANDO MENUS COM OPÇÕES
-  if (node.options) {
-    if (!node.options[msg]) {
-      await sendReply(from, "❌ Opção inválida.\nDigite novamente:");
-      await sendReply(from, node.message);
-      return res.json({ ok: true });
+    // WHAPI envia mensagens em: body.messages
+    const msg = body?.messages?.[0];
+    if (!msg || !msg.text) {
+      console.log("Nenhuma mensagem válida encontrada.");
+      return NextResponse.json({ received: true });
     }
 
-    userState[from].step = node.options[msg];
-    const nextNode = flow[userState[from].step];
+    const user = msg.from;
+    const text = msg.text.body.trim();
+    let session = await getSession(user);
 
-    if (nextNode.message) await sendReply(from, nextNode.message);
-    if (nextNode.finish) userState[from].step = "welcome";
+    console.log("Sessão atual:", session);
 
-    return res.json({ ok: true });
+    //
+    // 1️⃣ PEDIR NOME DO CLIENTE
+    //
+    if (session.step === "awaiting-name") {
+      session.name = text;
+      session.step = "awaiting-company";
+      await saveSession(user, session);
+
+      return sendMessage(user,
+        `Obrigado, *${session.name}*! 👋  
+Agora, por favor envie o *CNPJ ou nome da empresa* que deseja atendimento.`
+      );
+    }
+
+    //
+    // 2️⃣ PEDIR CNPJ
+    //
+    if (session.step === "awaiting-company") {
+      session.company = text;
+      session.step = "main-menu";
+      await saveSession(user, session);
+
+      return sendMessage(user, menuPrincipal(session.name, session.company));
+    }
+
+    //
+    // 3️⃣ MENU PRINCIPAL
+    //
+    if (session.step === "main-menu") {
+      if (text === "1") {
+        session.step = "menu-pessoal";
+        await saveSession(user, session);
+        return sendMessage(user, menuDeptoPessoal());
+      }
+      if (text === "2") {
+        session.step = "menu-fiscal";
+        await saveSession(user, session);
+        return sendMessage(user, menuDeptoFiscal());
+      }
+      if (text === "3") {
+        session.step = "menu-contabil";
+        await saveSession(user, session);
+        return sendMessage(user, menuDeptoContabil());
+      }
+      if (text === "9") {
+        return sendMessage(user, "🔀 Encaminhando para um *especialista*...");
+      }
+
+      return sendMessage(user, "❗ Opção inválida.\n\n" + menuPrincipal());
+    }
+
+    //
+    // 4️⃣ SUBMENUS COM VOLTAR
+    //
+
+    // ----- DEPARTAMENTO PESSOAL -----
+    if (session.step === "menu-pessoal") {
+      if (text === "0") {
+        session.step = "main-menu";
+        await saveSession(user, session);
+        return sendMessage(user, menuPrincipal());
+      }
+      return sendMessage(user, respostaPessoal(text));
+    }
+
+    // ----- FISCAL -----
+    if (session.step === "menu-fiscal") {
+      if (text === "0") {
+        session.step = "main-menu";
+        await saveSession(user, session);
+        return sendMessage(user, menuPrincipal());
+      }
+      return sendMessage(user, respostaFiscal(text));
+    }
+
+    // ----- CONTÁBIL -----
+    if (session.step === "menu-contabil") {
+      if (text === "0") {
+        session.step = "main-menu";
+        await saveSession(user, session);
+        return sendMessage(user, menuPrincipal());
+      }
+      return sendMessage(user, respostaContabil(text));
+    }
+
+    return sendMessage(user, "Não entendi, por favor escolha uma opção válida.");
+
+  } catch (e) {
+    console.error("Erro no webhook:", e);
+    return NextResponse.json({ error: e.message });
   }
-
-  // PROCESSANDO INPUTS DE TEXTO
-  if (node.response_template) {
-    const reply = node.response_template.replace("{{input}}", msg);
-    await sendReply(from, reply);
-    userState[from].step = "welcome";
-    return res.json({ ok: true });
-  }
-
-  if (node.message) {
-    await sendReply(from, node.message);
-    if (node.finish) userState[from].step = "welcome";
-    return res.json({ ok: true });
-  }
-
-  // FALLBACK
-  await sendReply(from, "Não entendi. Digite *00* para menu principal.");
-  return res.json({ ok: true });
 }
 
+/* --------------------------------------------------------
+    FUNÇÕES DE MENSAGENS
+-------------------------------------------------------- */
 
-// ===============================
-//      BACK MENU FUNCTION
-// ===============================
-
-function getBackStep(current) {
-  const map = {
-    dp_menu: "solicitacoes",
-    fiscal_menu: "solicitacoes",
-    contabil_menu: "solicitacoes",
-    solicitacoes: "welcome",
-    administracao: "welcome"
-  };
-  return map[current] || "welcome";
-}
-
-
-// ===============================
-//         SEND VIA WHAPI
-// ===============================
-
-async function sendReply(to, text) {
-  const token = "TwxJ51jkF1ZF3A57Tbss0RPbCBJhADxj";
-
-  const r = await fetch("https://gate.whapi.cloud/messages/text", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`
-    },
-    body: JSON.stringify({ to, body: text })
+function sendMessage(to, message) {
+  return NextResponse.json({
+    to,
+    message
   });
+}
 
-  console.log("WHAPI →", await r.json());
+/* --------------------------------------------------------
+ MENUS
+-------------------------------------------------------- */
+
+function menuPrincipal(name, company) {
+  return `
+Olá *${name}* 👋  
+Empresa: *${company}*  
+
+Escolha o departamento👇:
+
+👤 *1 - Depto. Pessoal*
+📄 *2 - Depto. Fiscal*
+📚 *3 - Contábil*
+  
+🔀 *9 - Falar com especialista*
+`;
+}
+
+function menuDeptoPessoal() {
+  return `
+👤 *DEPARTAMENTO PESSOAL*
+Escolha uma opção:
+
+1️⃣ Holerite  
+2️⃣ Férias  
+3️⃣ Rescisões  
+4️⃣ Afastamentos  
+5️⃣ Recalculo de Guias  
+6️⃣ Enviar Documentos  
+7️⃣ Solicitar Documentos  
+9️⃣ Falar com Especialista
+
+↩️ *0 - Voltar ao menu anterior*
+`;
+}
+
+function menuDeptoFiscal() {
+  return `
+📄 *DEPARTAMENTO FISCAL*
+Escolha uma opção:
+
+1️⃣ Recalculo de Guias  
+2️⃣ Falar sobre Impostos  
+3️⃣ Enviar Documentos  
+4️⃣ Relação de Faturamento  
+5️⃣ Dúvidas na emissão de Notas  
+9️⃣ Falar com Especialista  
+
+↩️ *0 - Voltar ao menu anterior*
+`;
+}
+
+function menuDeptoContabil() {
+  return `
+📚 *DEPARTAMENTO CONTÁBIL*
+Escolha uma opção:
+
+1️⃣ Enviar Documentos  
+2️⃣ Solicitar Documentações  
+9️⃣ Falar com Especialista  
+
+↩️ *0 - Voltar ao menu anterior*
+`;
+}
+
+/* --------------------------------------------------------
+ RESPOSTAS
+-------------------------------------------------------- */
+
+function respostaPessoal(opt) {
+  const map = {
+    "1": "📄 Enviando holerite...",
+    "2": "🗓 Solicitação de férias recebida.",
+    "3": "📤 Processando rescisão...",
+    "4": "📌 Registro de afastamento.",
+    "5": "🔁 Recalculando guias...",
+    "6": "📤 Pode enviar os documentos.",
+    "7": "📥 Quais documentos deseja solicitar?",
+    "9": "🔀 Encaminhando para um especialista..."
+  };
+  return map[opt] || "❗ Opção inválida.";
+}
+
+function respostaFiscal(opt) {
+  const map = {
+    "1": "🧾 Recalculo de guias solicitado.",
+    "2": "💬 Fale sobre os impostos...",
+    "3": "📤 Pode enviar os documentos.",
+    "4": "📊 Envie o período do faturamento.",
+    "5": "📝 Dúvidas sobre nota? Envie sua pergunta.",
+    "9": "🔀 Encaminhando para especialista..."
+  };
+  return map[opt] || "❗ Opção inválida.";
+}
+
+function respostaContabil(opt) {
+  const map = {
+    "1": "📤 Envie os documentos contábeis.",
+    "2": "📥 Quais documentos deseja solicitar?",
+    "9": "🔀 Encaminhando para especialista..."
+  };
+  return map[opt] || "❗ Opção inválida.";
 }
