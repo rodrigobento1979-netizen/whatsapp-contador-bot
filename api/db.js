@@ -1,21 +1,6 @@
-import { get, set } from '@vercel/edge-config';
+import { createClient } from "@supabase/supabase-js";
 
-/**
- * Recupera a sessão do usuário.
- */
-export async function getSession(user) {
-    const data = await get(`session_${user}`);
-    return data || {
-        step: "awaiting-name",
-        name: null,
-        company: null,
-        department: null
-    };
-}
-
-/**
- * Salva a sessão do usuário.
- */
-export async function saveSession(user, data) {
-    await set(`session_${user}`, data);
-}
+export const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY
+);
